@@ -221,7 +221,7 @@ $('f').addEventListener('input',e=>{if(e.target.id==='cw')e.target.dataset.man=1
  if(['aw','L','W','H','dpcs'].includes(e.target.id)&&!$('cw').dataset.man){$('cw').value=Math.max(+$('aw').value||0,+volw(vals()))||'';render()}});
 let act='';function mark(){$('preview').querySelectorAll('[data-s]').forEach(e=>e.classList.toggle('act',e.dataset.s===act))}
 $('f').addEventListener('focusin',e=>{const fs=e.target.closest('fieldset');if(fs){act=fs.dataset.s;mark()}});
-const API='https://script.google.com/macros/s/AKfycbzMHk2fjp1eOeSLopZZ0PYQLywu5sAXgjcFuJRaRhcFGFhwSu2g-w3wij1P2QjA8hYV/exec';
+const API='https://script.google.com/macros/s/AKfycbz2qJvbwIK_ClDP0F3hHZ5bk-OmoQ4h2tFKCpPwmIB7JiCM3eQr32BZYT0jzdysaI8Z/exec';
 async function api(a,p){let r;try{r=await fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(Object.assign({a,t:TOK},p||{}))})}catch(e){throw new Error('Cannot reach the server. Check the internet connection and the API link.')}
  const j=await r.json();if(j.err==='auth'){logout(true);throw new Error('Session expired. Please log in again.')}if(j.err)throw new Error(j.err);return j}
 function blankForm(){IDS.forEach(i=>{const e=$(i);if(e.tagName==='SELECT')e.selectedIndex=0;else e.value=''});$('pdate').value=new Date(Date.now()-new Date().getTimezoneOffset()*6e4).toISOString().slice(0,10);$('ptime').value=new Date().toTimeString().slice(0,5);if(ME)$('staff').value=ME.name;delete $('cw').dataset.man;loadedId=null;if($('newBtn'))$('newBtn').remove();render()}
