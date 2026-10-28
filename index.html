@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>LR Maker</title>
+<title>Lorry Receipt Register</title><script src="config.js"></script><link rel="manifest" href="manifest.json"><meta name="theme-color" content="#25364f"><script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script><script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 :root{--bg:#dfe1e3;--card:#f7f7f5;--ink:#1c2430;--mute:#4a5562;--line:#7f8791;--soft:#c9cdd2;--bar:#25364f;--bar-ink:#fff;--pri:#25364f;--pri-ink:#fff;--bad:#b3261e;--inp:#fff;--inp-ink:#111;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#16191d;--card:#22262b;--ink:#e3e6e9;--mute:#9aa3ad;--line:#5a626c;--soft:#363c44;--bar:#31435f;--bar-ink:#fff;--pri:#4a6591;--pri-ink:#fff;--bad:#ff8a80;--inp:#14171a;--inp-ink:#e3e6e9;color-scheme:dark}}
@@ -44,7 +44,7 @@ table{width:100%;border-collapse:collapse}
 th,td{border:1px solid var(--soft);padding:5px 8px;text-align:left}
 th{background:var(--soft)}tr.r{cursor:pointer}tr.r:nth-child(even){background:#00000008}tr.r:hover{background:#c9b46a44}
 .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#111;color:#fff;border:1px solid #b9a766;padding:8px 14px;max-width:90vw;display:none;z-index:9}
-.hide{display:none!important}#vHist,#vCo,#vUsr{display:block}
+.hide{display:none!important}#vHist,#vCo,#vUsr,#vCus,#vRep{display:block}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--btn:#3b424a}}:root[data-theme="dark"]{--btn:#3b424a}
 :root{--c-route:#1f6fb2;--c-ship:#c2571a;--c-recv:#2e8b57;--c-cons:#7b3fa0;--c-dim:#8f6a00;--c-chg:#b02a4a}
 [data-s=route]{--sc:var(--c-route)}[data-s=ship]{--sc:var(--c-ship)}[data-s=recv]{--sc:var(--c-recv)}[data-s=cons]{--sc:var(--c-cons)}[data-s=dim]{--sc:var(--c-dim)}[data-s=chg]{--sc:var(--c-chg)}
@@ -93,12 +93,13 @@ fieldset[data-s] :is(input,select,textarea):focus{outline:none;border-color:var(
 .lb .lh{display:flex;justify-content:space-between;align-items:center}.lb .lh b{font:bold 15pt "Courier New",monospace}
 .lb .lt{font:bold 24pt Arial;text-transform:uppercase;margin:2mm 0}.lb .lp{font:bold 14pt "Courier New",monospace;text-align:right}
 @media print{.lr.half:nth-child(2n){break-after:auto}.lr.half:nth-child(2n+1){margin-bottom:5mm}}
+.inv{padding:8mm;font:10pt Arial;color:#000;background:#fff}.inv table{width:100%;border-collapse:collapse;margin:4mm 0}.inv th,.inv td{border:.5px solid #000;padding:1.5mm;text-align:left}.inv h2{margin:3mm 0}
 </style></head>
 <body>
 <div id="login" style="position:fixed;inset:0;z-index:20;background:var(--bg);display:flex;align-items:center;justify-content:center"><div class="panel" style="width:min(360px,92vw);padding:16px"><h1 style="color:var(--ink);margin:0 0 4px">Lorry Receipt Register</h1><p style="margin:0 0 12px;color:var(--mute)">PMJ Solutions / PMJ-Logistics Solutions LLP</p><label>User ID<input id="lgId" autocomplete="username"></label><label style="margin-top:8px">Password<input id="lgPw" type="password" autocomplete="current-password"></label><p id="lgErr" style="color:var(--bad);min-height:18px;margin:8px 0"></p><button class="pri" id="lgGo" style="width:100%">Log in</button></div></div>
 <header>
  <h1>Lorry Receipt Register</h1>
- <label class="cos">Company <select id="co" style="margin:0"></select></label><nav class="tabs"><button id="tNew" class="on">New LR</button><button id="tHist">History</button><button id="tCo" class="hide">Company</button><button id="tUsr" class="hide">Users</button></nav>
+ <label class="cos">Company <select id="co" style="margin:0"></select></label><nav class="tabs"><button id="tNew" class="on">New LR</button><button id="tHist">History</button><button id="tCus">Customers</button><button id="tRep">Reports</button><button id="tCo" class="hide">Company</button><button id="tUsr" class="hide">Users</button></nav>
  <span class="chip" id="who"></span><button id="bPw">Change password</button><button id="bOut">Log out</button>
 </header>
 <div id="app">
@@ -110,7 +111,7 @@ fieldset[data-s] :is(input,select,textarea):focus{outline:none;border-color:var(
  <section>
   <div class="bar">
    <label style="display:flex;gap:4px;align-items:center;margin:0">Format <select id="fmt" style="width:auto;margin:0"><option value="std">PMJ standard</option><option value="cmp">Compact</option><option value="drv">Driver slip</option><option value="lbl">Package labels</option></select></label><div class="tabs" id="copyTabs"></div>
-   <button class="pri" id="bSave">Save LR</button><button class="pri" id="bSP">Save &amp; Print</button><button id="bRep">Repeat last</button>
+   <button class="pri" id="bSave">Save LR</button><button class="pri" id="bSP">Save &amp; Print</button><button class="pri hide" id="bUpd">Save changes</button><button id="bRep">Repeat last</button>
    <button id="bPrint">Print 4 copies</button>
    <button id="bPdf">Download PDF</button>
    <button id="bWa">Share on WhatsApp</button>
@@ -120,16 +121,22 @@ fieldset[data-s] :is(input,select,textarea):focus{outline:none;border-color:var(
   <div class="scroll"><div id="preview"></div></div>
  </section>
 </main>
+<main id="vCus" class="hide"><section class="panel" style="max-width:900px"><div class="bar ttl"><b>Customers and rates</b></div>
+<div id="cEd"><div class="g" style="margin-top:10px"><label class="w">Name<input id="cN"></label><label class="w">Address<textarea id="cA"></textarea></label><label>GST no.<input id="cG"></label><label>Phone<input id="cT"></label><label>Rate per kg (Rs.)<input id="cR" type="number" step="any"></label><label>Minimum freight (Rs.)<input id="cM" type="number" step="any"></label><label>Docket fee (Rs.)<input id="cD" type="number" step="any"></label></div><div class="bar"><button class="pri" id="cSave">Save customer</button><button id="cDel">Delete</button><button id="cClr">Clear</button></div></div>
+<div class="scroll"><table><thead><tr><th>Name</th><th>GST</th><th>Phone</th><th>Rate/kg</th><th>Min</th></tr></thead><tbody id="cRows"></tbody></table></div></section></main>
+<main id="vRep" class="hide"><section class="panel"><div class="bar ttl"><b>Reports</b></div>
+<div class="bar"><input id="rMon" type="month" style="width:auto;margin:0"><button id="rCsv">Download Excel (CSV)</button></div><div class="bar" id="rCards"></div>
+<div class="scroll"><table><thead><tr><th>Billing party</th><th>LRs</th><th>Weight (kg)</th><th>Freight (Rs.)</th><th>To be billed (Rs.)</th><th></th></tr></thead><tbody id="rRows"></tbody></table></div></section></main>
 <main id="vUsr" class="hide"><section class="panel" style="max-width:780px"><div class="bar ttl"><b>Users</b></div>
-<div class="g" style="margin-top:10px"><label>User ID<input id="uId"></label><label>Name<input id="uNm"></label><label>Password (min 6)<input id="uPw"></label><label>Role<select id="uRl"><option>staff</option><option>admin</option></select></label></div>
+<div class="g" style="margin-top:10px"><label>User ID<input id="uId"></label><label>Name<input id="uNm"></label><label>Password (min 6)<input id="uPw"></label><label>Role<select id="uRl"><option>staff</option><option>admin</option><option>viewer</option></select></label></div>
 <div class="bar"><button class="pri" id="uAdd">Add user</button></div>
 <table><thead><tr><th>ID</th><th>Name</th><th>Role</th><th>Status</th><th></th></tr></thead><tbody id="uRows"></tbody></table>
 <div class="bar ttl" style="margin-top:14px"><b>Next LR number</b></div><div class="bar" id="nxt"></div></section></main>
 <main id="vCo" class="hide"><section class="panel" style="max-width:640px"><p id="coNote" style="color:var(--mute);margin-top:0"></p><div id="coForm" class="g"></div><div class="bar" style="margin-top:14px"><label class="btn" style="margin:0">Upload this company’s logo<input id="logoIn2" type="file" accept="image/*" class="hide"></label></div></section></main>
 <main id="vHist" class="hide">
  <section class="panel">
-  <div class="bar"><input id="q" placeholder="Search by LR number, party, vehicle, user or date" style="max-width:380px;margin:0"><label style="display:flex;align-items:center;gap:4px;margin:0"><input id="mine" type="checkbox" style="width:auto;margin:0"> My LRs only</label><button id="bRef">Refresh</button><span class="chip" id="cnt"></span></div>
-  <div id="det" class="hide" style="margin-bottom:12px"></div><div class="scroll"><table><thead><tr><th>LR no.</th><th>Unique ID</th><th>Date</th><th>Shipper</th><th>Receiver</th><th>Pcs / Kg</th><th>By</th><th>Rem.</th></tr></thead><tbody id="rows"></tbody></table></div>
+  <div class="bar"><input id="q" placeholder="Search by LR number, party, vehicle, user or date" style="max-width:380px;margin:0"><label style="display:flex;align-items:center;gap:4px;margin:0"><input id="mine" type="checkbox" style="width:auto;margin:0"> My LRs only</label><select id="fst" style="width:auto;margin:0"><option value="">All status</option><option value="open">Not delivered</option><option value="pod">POD pending</option><option value="done">POD received</option></select><button id="bRef">Refresh</button><span class="chip" id="cnt"></span></div>
+  <div id="det" class="hide" style="margin-bottom:12px"></div><div class="scroll"><table><thead><tr><th>LR no.</th><th>Unique ID</th><th>Date</th><th>Shipper</th><th>Receiver</th><th>Pcs / Kg</th><th>By</th><th>Status</th></tr></thead><tbody id="rows"></tbody></table></div>
   <p id="empty" class="hide" style="color:var(--mute)">No LRs yet. Save one from the New LR tab and it appears here.</p>
  </section>
 </main>
@@ -194,11 +201,11 @@ function sheetCmp(d,no,copy){
  <div class="foot">${[['Booking',c.book],['Delivery',c.deliv],['Support',c.supp]].filter(x=>x[1]).map(x=>`<span>${x[0]} ${esc(x[1])}</span>`).join('')||`<span>${esc(c.web||c.email)}</span>`}</div></div>`}
 function curNo(){return loadedId?loadedId.no:nextNo()}
 function render(){$('co').style.borderLeft='6px solid '+CO().color;const d=vals();$('preview').innerHTML=sheet(d,curNo(),COPIES[copyIdx]);mark();
- $('lrTitle').textContent=CO().name+' – LR no. '+curNo()+(calc(d).grand?' – Total Rs. '+calc(d).grand:'');$('uid').textContent=loadedId?'ID '+loadedId.id:'ID assigned on save'}
+ $('lrTitle').textContent=CO().name+' – LR no. '+curNo()+(calc(d).grand?' – Total Rs. '+calc(d).grand:'');$('uid').textContent=loadedId?'ID '+loadedId.id:'ID assigned on save';$('bUpd').classList.toggle('hide',!(loadedId&&ME&&ME.role==='admin'));['bSave','bSP','bRep'].forEach(i=>$(i).classList.toggle('hide',!!(ME&&ME.role==='viewer')))}
 $('copyTabs').innerHTML=COPIES.map((c,i)=>`<button data-i="${i}" class="${i?'':'on'}">${c.replace(' copy','')}</button>`).join('');
 $('copyTabs').onclick=e=>{const i=e.target.dataset.i;if(i==null)return;copyIdx=+i;[...$('copyTabs').children].forEach((b,j)=>b.classList.toggle('on',j===copyIdx));render()};
 $('f').addEventListener('input',e=>{if(e.target.id==='sname'||e.target.id==='rname'){const c=custs()[e.target.value];if(c){const a=$(e.target.id==='sname'?'saddr':'raddr');if(!a.value.trim()||a.dataset.auto)a.value=c;a.dataset.auto=1}}if(e.target.tagName==='TEXTAREA')delete e.target.dataset.auto;render()});
-function custs(){const m={};hist().forEach(h=>{m[h.d.sname]=h.d.saddr;m[h.d.rname]=h.d.raddr});return m}
+function custs(){const m={};hist().forEach(h=>{m[h.d.sname]=h.d.saddr;m[h.d.rname]=h.d.raddr});CUST.forEach(c=>m[c.name]=c.addr);return m}
 function fillCusts(){$('custs').innerHTML=Object.keys(custs()).map(n=>`<option value="${esc(n)}">`).join('')}
 function toast(m){const t=$('toast');t.textContent=m;t.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>t.style.display='none',3800)}
 function printAll(){const d=vals(),no=curNo();PRN=true;const cs=FMT==='lbl'?['']:FMT==='drv'?['Driver copy','Office copy']:COPIES;$('print').innerHTML=cs.map(c=>sheet(d,no,c)).join('');PRN=false;window.print()}
@@ -206,15 +213,14 @@ $('bSave').onclick=()=>{};
 function addNew(){if(!$('newBtn')){const b=document.createElement('button');b.id='newBtn';b.textContent='New LR';b.onclick=()=>{$('newBtn').remove();blankForm()};$('bSave').before(b)}}
 $('bPrint').onclick=()=>doSave(true);
 $('bPdf').onclick=()=>{toast('In the print dialog, choose “Save as PDF” as the destination.');setTimeout(()=>doSave(true),900)};
-$('bWa').onclick=()=>{const d=vals();window.open('https://wa.me/?text='+encodeURIComponent(`${CO().name} LR ${curNo()}\n${d.origin} to ${d.dest}\nPieces: ${d.pcs}, Weight: ${d.cw} kg\nVehicle: ${d.veh}`),'_blank')};
 $('bMail').onclick=()=>{const d=vals();location.href='mailto:?subject='+encodeURIComponent('LR '+curNo()+' - '+CO().name)+'&body='+encodeURIComponent(`LR ${curNo()}\n${d.origin} to ${d.dest}\nPieces: ${d.pcs}, Weight: ${d.cw} kg\nVehicle: ${d.veh}`)};
 $('logoIn').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{COS[cur].logo=r.result;saveCos();render()};r.readAsDataURL(f)};
-function rows(){const q=$('q').value.toLowerCase(),mine=$('mine').checked,h=hist().filter(x=>(!mine||x.by===(ME&&ME.id))&&JSON.stringify([x.no,x.id,x.d,x.by]).toLowerCase().includes(q));
- $('rows').innerHTML=h.map(x=>`<tr class="r" data-id="${esc(x.id)}"><td><b>${x.no}</b></td><td>${esc(x.id)}</td><td>${esc(x.d.pdate)}</td><td>${esc(x.d.sname)}</td><td>${esc(x.d.rname)}</td><td>${esc(x.d.pcs)} / ${esc(x.d.cw)}</td><td>${esc(x.by)}</td><td>${x.rc||''}</td></tr>`).join('');
+function rows(){const q=$('q').value.toLowerCase(),mine=$('mine').checked,h=hist().filter(x=>(!mine||x.by===(ME&&ME.id))&&stOK(x)&&JSON.stringify([x.no,x.id,x.d,x.by]).toLowerCase().includes(q));
+ $('rows').innerHTML=h.map(x=>`<tr class="r" data-id="${esc(x.id)}"><td><b>${x.no}</b></td><td>${esc(x.id)}</td><td>${esc(x.d.pdate)}</td><td>${esc(x.d.sname)}</td><td>${esc(x.d.rname)}</td><td>${esc(x.d.pcs)} / ${esc(x.d.cw)}</td><td>${esc(x.by)}</td><td>${esc(x.tr||'Booked')}${x.rc?' ('+x.rc+' note'+(x.rc>1?'s':'')+')':''}</td></tr>`).join('');
  $('cnt').textContent=h.length+' LR'+(h.length===1?'':'s');$('empty').classList.toggle('hide',hist().length>0)}
 $('q').oninput=rows;
 $('rows').onclick=e=>{const tr=e.target.closest('tr');if(!tr)return;openDet(hist().find(h=>h.id===tr.dataset.id))};
-function show(v){[['new','vNew','tNew'],['hist','vHist','tHist'],['co','vCo','tCo'],['usr','vUsr','tUsr']].forEach(([k,a,b])=>{$(a).classList.toggle('hide',v!==k);$(b).classList.toggle('on',v===k)});if(v==='hist')rows();if(v==='co')coForm();if(v==='usr')loadUsers()}
+function show(v){[['new','vNew','tNew'],['hist','vHist','tHist'],['co','vCo','tCo'],['usr','vUsr','tUsr'],['cus','vCus','tCus'],['rep','vRep','tRep']].forEach(([k,a,b])=>{$(a).classList.toggle('hide',v!==k);$(b).classList.toggle('on',v===k)});if(v==='hist')rows();if(v==='co')coForm();if(v==='usr')loadUsers();if(v==='cus')custRows();if(v==='rep')repRows()}
 $('tNew').onclick=()=>show('new');$('tHist').onclick=()=>{show('hist');refresh()};$('tCo').onclick=()=>show('co');$('tUsr').onclick=()=>show('usr');
 const CF=[['name','Company name'],['tag','Tagline (printed under the name)'],['addr','Address','a'],['pan','PAN'],['gst','GST no.'],['mob','Phone numbers'],['book','Booking number'],['deliv','Delivery number'],['supp','Customer support number'],['email','Email'],['web','Website'],['cheque','Cheques in favour of'],['pre','Unique ID prefix'],['color','Brand colour','c']];
 function coForm(){const c=CO();$('coForm').innerHTML=CF.map(([k,l,t])=>`<label class="${t==='a'?'w':''}">${l}${t==='a'?`<textarea data-k="${k}">${esc(c[k])}</textarea>`:`<input data-k="${k}" type="${t==='c'?'color':'text'}" value="${esc(c[k])}">`}</label>`).join('');$('coNote').textContent='Editing '+c.name+'. Its LR numbers, saved customers and history are kept separate from the other company. Next LR no. is '+nextNo()+'.'}
@@ -235,23 +241,23 @@ $('f').addEventListener('input',e=>{if(e.target.id==='cw')e.target.dataset.man=1
  if(['aw','L','W','H','dpcs'].includes(e.target.id)&&!$('cw').dataset.man){$('cw').value=Math.max(+$('aw').value||0,+volw(vals()))||'';render()}});
 let act='';function mark(){$('preview').querySelectorAll('[data-s]').forEach(e=>e.classList.toggle('act',e.dataset.s===act))}
 $('f').addEventListener('focusin',e=>{const fs=e.target.closest('fieldset');if(fs){act=fs.dataset.s;mark()}});
-const API='https://script.google.com/macros/s/AKfycbz2qJvbwIK_ClDP0F3hHZ5bk-OmoQ4h2tFKCpPwmIB7JiCM3eQr32BZYT0jzdysaI8Z/exec';
+const API=window.LR_API||'';
 async function api(a,p){let r;try{r=await fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(Object.assign({a,t:TOK},p||{}))})}catch(e){throw new Error('Cannot reach the server. Check the internet connection and the API link.')}
  const j=await r.json();if(j.err==='auth'){logout(true);throw new Error('Session expired. Please log in again.')}if(j.err)throw new Error(j.err);return j}
-function blankForm(){IDS.forEach(i=>{const e=$(i);if(e.tagName==='SELECT')e.selectedIndex=0;else e.value=''});$('pdate').value=new Date(Date.now()-new Date().getTimezoneOffset()*6e4).toISOString().slice(0,10);$('ptime').value=new Date().toTimeString().slice(0,5);if(ME)$('staff').value=ME.name;delete $('cw').dataset.man;loadedId=null;if($('newBtn'))$('newBtn').remove();render()}
-async function refresh(){try{const j=await api('list');H=j.lrs;NEXT=Object.assign(NEXT,j.next);fillCusts();rows();render()}catch(e){toast(e.message)}}
-async function saveRemote(){$('bSave').disabled=$('bSP').disabled=true;try{const d=vals(),j=await api('save',{co:cur,d});loadedId={no:j.no,id:j.id};H.unshift({co:cur,no:j.no,id:j.id,saved:new Date().toISOString(),by:ME.id,rc:0,d});NEXT[cur]=j.no+1;render();fillCusts();addNew();toast('Saved as LR '+j.no+' ('+j.id+') and added to the Google Sheet.');return true}catch(e){toast(e.message);return false}finally{$('bSave').disabled=$('bSP').disabled=false}}
+function blankForm(){IDS.forEach(i=>{const e=$(i);if(e.tagName==='SELECT')e.selectedIndex=0;else e.value=''});$('pdate').value=new Date(Date.now()-new Date().getTimezoneOffset()*6e4).toISOString().slice(0,10);$('ptime').value=new Date().toTimeString().slice(0,5);if(ME)$('staff').value=ME.name;['cw','fr','fdk'].forEach(k=>delete $(k).dataset.man);loadedId=null;if($('newBtn'))$('newBtn').remove();render()}
+async function refresh(){try{const j=await api('list');H=j.lrs;CUST=j.cust||[];NEXT=Object.assign(NEXT,j.next);fillCusts();rows();render()}catch(e){toast(e.message)}}
+async function saveRemote(){$('bSave').disabled=$('bSP').disabled=true;try{const d=vals(),j=await api('save',{co:cur,d});try{localStorage.removeItem('lr_draft')}catch(e){}loadedId={no:j.no,id:j.id};H.unshift({co:cur,no:j.no,id:j.id,saved:new Date().toISOString(),by:ME.id,rc:0,d});NEXT[cur]=j.no+1;render();fillCusts();addNew();toast('Saved as LR '+j.no+' ('+j.id+') and added to the Google Sheet.');return true}catch(e){toast(e.message);return false}finally{$('bSave').disabled=$('bSP').disabled=false}}
 async function login(){$('lgErr').textContent='';$('lgGo').disabled=true;try{start(await api('login',{id:$('lgId').value.trim(),pass:$('lgPw').value}))}catch(e){$('lgErr').textContent=e.message}finally{$('lgGo').disabled=false}}
-function start(j){TOK=j.t;ME=j;try{localStorage.setItem('lr_tok',JSON.stringify(j))}catch(e){}$('login').classList.add('hide');$('lgPw').value='';$('who').textContent=j.name+' ('+j.role+')';$('tUsr').classList.toggle('hide',j.role!=='admin');blankForm();refresh()}
+function start(j){TOK=j.t;ME=j;try{localStorage.setItem('lr_tok',JSON.stringify(j))}catch(e){}$('login').classList.add('hide');$('lgPw').value='';$('who').textContent=j.name+' ('+j.role+')';$('tUsr').classList.toggle('hide',j.role!=='admin');blankForm();restoreDraft();refresh()}
 function logout(q){TOK='';ME=null;try{localStorage.removeItem('lr_tok')}catch(e){}$('login').classList.remove('hide');H=[];if(!q)$('lgId').focus()}
 function boot(){let s=null;try{s=JSON.parse(localStorage.getItem('lr_tok')||'null')}catch(e){}if(s&&s.t)start(s);else $('lgId').focus()}
 $('lgGo').onclick=login;$('lgPw').onkeydown=e=>{if(e.key==='Enter')login()};$('bOut').onclick=()=>logout();
 $('bPw').onclick=async()=>{const p=prompt('New password (at least 6 characters)');if(!p)return;try{await api('mypass',{pass:p});toast('Password changed.')}catch(e){toast(e.message)}};
 $('mine').onchange=rows;$('bRef').onclick=refresh;
-function openLR(x){IDS.forEach(i=>$(i).value=x.d[i]??'');loadedId={no:x.no,id:x.id};render();addNew()}
-function openDet(x){const el=$('det');el.classList.remove('hide');el.innerHTML=`<fieldset data-s="cons"><legend>LR ${x.no} – ${esc(x.id)}</legend><div>${esc(x.d.sname)} to ${esc(x.d.rname)}. ${esc(x.d.origin)} to ${esc(x.d.dest)}, ${esc(x.d.pcs)} pcs, ${esc(x.d.cw)} kg. Created by ${esc(x.by)}.</div><div class="bar"><button id="dOpen">Open in form</button><button id="dPrint">Print 4 copies</button><button id="dClose">Close</button></div><div id="rmL">Loading remarks…</div><label>Add a remark<textarea id="rmT" maxlength="1000"></textarea></label><div class="bar"><button class="pri" id="rmAdd">Add remark</button></div></fieldset>`;
- $('dClose').onclick=()=>el.classList.add('hide');$('dOpen').onclick=()=>{openLR(x);show('new')};$('dPrint').onclick=()=>{openLR(x);show('new');printAll()};
- $('rmAdd').onclick=async()=>{const t=$('rmT').value.trim();if(!t)return toast('Type a remark first.');try{await api('remark',{id:x.id,text:t});x.rc=(x.rc||0)+1;$('rmT').value='';rows();loadRem(x)}catch(e){toast(e.message)}};loadRem(x);el.scrollIntoView()}
+function openLR(x){IDS.forEach(i=>$(i).value=x.d[i]??'');['fr','fdk'].forEach(k=>$(k).dataset.man=1);loadedId={no:x.no,id:x.id};render();addNew()}
+function openDet(x){const el=$('det');el.classList.remove('hide');el.innerHTML=`<fieldset data-s="cons"><legend>LR ${x.no} – ${esc(x.id)}</legend><div>${esc(x.d.sname)} to ${esc(x.d.rname)}. ${esc(x.d.origin)} to ${esc(x.d.dest)}, ${esc(x.d.pcs)} pcs, ${esc(x.d.cw)} kg. Created by ${esc(x.by)}.</div><div class="bar"><button id="dOpen">Open in form</button><button id="dPrint">Print 4 copies</button><button id="dClose">Close</button>${ME&&ME.role==='admin'?'<button id="dDel">Delete LR</button>':''}</div><div class="bar" id="stB"></div><div id="rmL">Loading remarks…</div><label>Add a remark<textarea id="rmT" maxlength="1000"></textarea></label><div class="bar"><button class="pri" id="rmAdd">Add remark</button></div></fieldset>`;
+ $('dClose').onclick=()=>el.classList.add('hide');if($('dDel'))$('dDel').onclick=async()=>{const r=prompt('Delete LR '+x.no+'? Type the reason (required). The row stays in the Sheet marked Deleted and the action is logged.');if(!r)return;try{await api('delete',{id:x.id,reason:r});H=H.filter(h=>h.id!==x.id);if(loadedId&&loadedId.id===x.id)blankForm();el.classList.add('hide');rows();toast('LR '+x.no+' deleted.')}catch(e){toast(e.message)}};$('dOpen').onclick=()=>{openLR(x);show('new')};$('dPrint').onclick=()=>{openLR(x);show('new');printAll()};
+ $('rmAdd').onclick=async()=>{const t=$('rmT').value.trim();if(!t)return toast('Type a remark first.');try{await api('remark',{id:x.id,text:t});x.rc=(x.rc||0)+1;$('rmT').value='';rows();loadRem(x)}catch(e){toast(e.message)}};loadRem(x);stBar(x);el.scrollIntoView()}
 async function loadRem(x){try{const j=await api('remarks',{id:x.id});$('rmL').innerHTML=j.rem.length?j.rem.map(r=>`<p style="margin:4px 0"><b>${esc(r.by)}</b> <small>${esc(new Date(r.t).toLocaleString())}</small><br>${esc(r.text)}</p>`).join(''):'<p style="color:var(--mute)">No remarks yet.</p>'}catch(e){$('rmL').textContent=e.message}}
 async function loadUsers(){try{const j=await api('users');$('uRows').innerHTML=j.users.map(u=>`<tr><td>${esc(u.id)}</td><td>${esc(u.name)}</td><td>${u.role}</td><td>${u.active?'Active':'Disabled'}</td><td><button data-a="rp" data-id="${esc(u.id)}">Reset password</button> <button data-a="ac" data-id="${esc(u.id)}">${u.active?'Disable':'Enable'}</button></td></tr>`).join('');
  $('nxt').innerHTML=Object.values(COS).map(c=>`<label>${esc(c.name)}<input type="number" min="1" id="n_${c.id}" value="${NEXT[c.id]||1}" style="width:120px"></label><button data-a="nx" data-id="${c.id}">Set</button>`).join(' ')}catch(e){toast(e.message)}}
@@ -289,6 +295,47 @@ function sheetDrv(d,no,copy,c){return `<div class="lr half"><div class="top">${b
  <div class="kv"><span>Vehicle</span><b>${esc(d.veh)}</b><span>Route</span><b>${esc(d.origin)} to ${esc(d.dest)}</b><span>Consignor</span><b>${esc(d.sname)}</b><span>Consignee</span><b>${esc(d.rname)}, ${esc(String(d.raddr||'').replace(/\n/g,' '))}</b><span>Contents</span><b>${esc(d.desc)} / ${esc(d.pcs)} pkgs / ${esc(d.cw)} kg</b><span>Pickup</span><b>${pdf(d)} ${esc(d.ptime)} ${esc(d.staff)}</b><span>Delivery</span><b>${esc(d.deliv)}${d.dod?' | COLLECT DOD Rs. '+esc(d.dod):''}</b><span>Remarks</span><b>${esc(d.rem)}</b></div>
  <div class="terms"><p>Driver name &amp; sign ____________________</p><p>Received by consignee (sign / mobile / date / time) ____________________</p></div></div>`}
 function labelsHTML(d,no,c){const n=Math.min(Math.max(+d.pcs||1,1),PRN?200:2);let s='';for(let i=1;i<=n;i++)s+=`<div class="lb"><div class="lh">${brand(c)}<b>LR ${esc(no)}</b></div><div class="lt">${esc(d.dest)}</div><div>TO: <b>${esc(d.rname)}</b><br>${esc(String(d.raddr||'').replace(/\n/g,', '))}</div><div>FROM: ${esc(d.sname)} (${esc(d.origin)})</div><div class="lp">PKG ${i} / ${esc(d.pcs||1)}</div></div>`;return s}
+$('bUpd').onclick=async()=>{if(!confirm('Save changes to LR '+loadedId.no+'? The old version is kept in the Audit tab.'))return;try{const d=vals();await api('edit',{id:loadedId.id,d});const x=H.find(h=>h.id===loadedId.id);if(x)x.d=d;rows();toast('LR '+loadedId.no+' updated.')}catch(e){toast(e.message)}};
 $('fmt').value=FMT;$('fmt').onchange=()=>{FMT=$('fmt').value;try{localStorage.setItem('lr_fmt',FMT)}catch(e){}render()};
+let CUST=[];const STS=['Booked','In transit','Delivered','POD received'];
+const cf=n=>CUST.find(c=>c.name.toLowerCase()===String(n).trim().toLowerCase()),inr=n=>(+n||0).toLocaleString('en-IN');
+const stOK=x=>{const f=$('fst').value,s=x.tr||'Booked';return !f||(f==='open'&&(s==='Booked'||s==='In transit'))||(f==='pod'&&s==='Delivered')||(f==='done'&&s==='POD received')};
+$('fst').onchange=rows;$('tCus').onclick=()=>show('cus');$('tRep').onclick=()=>show('rep');
+// customer autofill and rates
+function applyRate(){const p=cf($('billto').value==='Consignee'?$('rname').value:$('sname').value);if(!p||!(+p.rate>0)||!(+$('cw').value>0))return;if(!$('fr').dataset.man)$('fr').value=Math.max(+p.min||0,Math.round(+p.rate*+$('cw').value));if(p.docket&&!$('fdk').dataset.man)$('fdk').value=p.docket;render()}
+$('f').addEventListener('input',e=>{if(e.target.id==='fr'||e.target.id==='fdk')e.target.dataset.man=1;if(['cw','aw','L','W','H','dpcs','sname','rname','billto'].includes(e.target.id))setTimeout(applyRate,0);if(!loadedId)try{localStorage.setItem('lr_draft',JSON.stringify(vals()))}catch(x){}});
+$('f').addEventListener('change',e=>{const id=e.target.id;if(id!=='sname'&&id!=='rname')return;const c=cf(e.target.value);if(!c)return;const s=id==='sname',a=$(s?'saddr':'raddr'),g=$(s?'sgst':'rgst'),t=$(s?'stel':'rtel');if(!a.value.trim())a.value=c.addr||'';if(!g.value)g.value=c.gst||'';if(!t.value)t.value=c.tel||'';applyRate()});
+function restoreDraft(){try{const d=JSON.parse(localStorage.getItem('lr_draft')||'null');if(d&&d.sname!==undefined){IDS.forEach(i=>{if(d[i]!==undefined)$(i).value=d[i]});render();toast('Your unsaved draft was restored.')}}catch(e){}}
+// customers screen
+const CI={cN:'name',cA:'addr',cG:'gst',cT:'tel',cR:'rate',cM:'min',cD:'docket'},cClear=()=>Object.keys(CI).forEach(k=>$(k).value='');
+function custRows(){$('cEd').classList.toggle('hide',!(ME&&ME.role==='admin'));$('cRows').innerHTML=CUST.map(c=>`<tr class="r" data-n="${esc(c.name)}"><td><b>${esc(c.name)}</b></td><td>${esc(c.gst)}</td><td>${esc(c.tel)}</td><td>${esc(c.rate)}</td><td>${esc(c.min)}</td></tr>`).join('')}
+$('cRows').onclick=e=>{const tr=e.target.closest('tr'),c=tr&&CUST.find(x=>x.name===tr.dataset.n);if(c)Object.keys(CI).forEach(k=>$(k).value=c[CI[k]]??'')};
+$('cClr').onclick=cClear;
+$('cSave').onclick=async()=>{const c={};Object.keys(CI).forEach(k=>c[CI[k]]=$(k).value.trim());if(!c.name)return toast('Enter the customer name.');try{await api('custsave',{c});await refresh();custRows();toast('Customer saved.')}catch(e){toast(e.message)}};
+$('cDel').onclick=async()=>{const n=$('cN').value.trim();if(!n||!confirm('Delete customer '+n+'?'))return;try{await api('custdel',{name:n});await refresh();custRows();cClear()}catch(e){toast(e.message)}};
+// status, POD and PDF
+function shrink(f){return new Promise((ok,no)=>{const im=new Image,u=URL.createObjectURL(f);im.onload=()=>{const k=Math.min(1,1400/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=im.width*k;c.height=im.height*k;c.getContext('2d').drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(u);ok({b64:c.toDataURL('image/jpeg',.7).split(',')[1],mime:'image/jpeg'})};im.onerror=()=>no(new Error('Could not read that image.'));im.src=u})}
+const upload=(x,kind,f)=>api('upload',{id:x.id,kind,name:x.id+'-'+kind+(f.mime==='application/pdf'?'.pdf':'.jpg'),mime:f.mime,b64:f.b64});
+async function lrPdf(x){if(!window.html2canvas||!window.jspdf)throw new Error('PDF tools are still loading. Try again in a moment.');const el=document.createElement('div'),f=FMT;el.style.cssText='position:fixed;left:-9999px;top:0;background:#fff';FMT=(f==='std'||f==='cmp')?f:'std';el.innerHTML=sheet(x.d,x.no,'Consignee copy');FMT=f;document.body.appendChild(el);try{const cv=await html2canvas(el.firstElementChild,{scale:2,backgroundColor:'#fff'}),p=new window.jspdf.jsPDF('p','mm','a4');p.addImage(cv.toDataURL('image/jpeg',.85),'JPEG',10,10,190,136);return{b64:p.output('datauristring').split(',')[1],mime:'application/pdf'}}finally{el.remove()}}
+function stBar(x){const w=!(ME&&ME.role==='viewer'),s=x.tr||'Booked';$('stB').innerHTML='<b>Status:</b> '+STS.map(t=>`<button data-t="${t}" class="${t===s?'on':''}"${w?'':' disabled'}>${t}</button>`).join('')+(w?` <label class="btn" style="margin:0">Upload POD photo<input id="podIn" type="file" accept="image/*" class="hide"></label>`+(x.pdf?'':' <button data-pdf="1">Create PDF link</button>'):'')+(x.pod?` <a href="${esc(x.pod)}" target="_blank" rel="noopener">View POD</a>`:'')+(x.pdf?` <a href="${esc(x.pdf)}" target="_blank" rel="noopener">View PDF</a>`:'')+(x.inv?` <span class="chip">Invoice ${esc(x.inv)}</span>`:'');
+ $('stB').onclick=async e=>{const b=e.target.closest('button');if(!b)return;try{if(b.dataset.pdf){toast('Preparing PDF…');x.pdf=(await upload(x,'pdf',await lrPdf(x))).url}else if(b.dataset.t){await api('status',{id:x.id,s:b.dataset.t});x.tr=b.dataset.t}else return;stBar(x);rows()}catch(er){toast(er.message)}};
+ if($('podIn'))$('podIn').onchange=async e=>{const f=e.target.files[0];if(!f)return;toast('Uploading POD…');try{x.pod=(await upload(x,'pod',await shrink(f))).url;x.tr='POD received';stBar(x);rows();toast('POD saved. Status set to POD received.')}catch(er){toast(er.message)}}}
+$('bWa').onclick=async()=>{const w=window.open('','_blank');try{if(!loadedId&&!(await saveRemote())){w&&w.close();return}const x=H.find(h=>h.id===loadedId.id);if(!x.pdf){toast('Preparing PDF…');x.pdf=(await upload(x,'pdf',await lrPdf(x))).url}
+ const tl=location.href.replace(/[?#].*$/,'').replace(/[^\/]*$/,'')+'track.html?id='+encodeURIComponent(x.id),u='https://wa.me/?text='+encodeURIComponent(`${CO().name}\nLR ${x.no}: ${x.d.origin} to ${x.d.dest}\nPieces: ${x.d.pcs}, Weight: ${x.d.cw} kg\nPDF: ${x.pdf}\nTrack: ${tl}`);if(w)w.location=u;else window.open(u,'_blank')}catch(e){w&&w.close();toast(e.message)}};
+// reports and invoices
+const mon=x=>(x.d.pdate||'').slice(0,7)===$('rMon').value,party=x=>x.d.billto==='Consignee'?x.d.rname:x.d.sname;
+function repRows(){if(!$('rMon').value)$('rMon').value=new Date().toISOString().slice(0,7);const all=hist().filter(mon),m={};all.forEach(x=>{const p=party(x),t=calc(x.d).grand,o=m[p]=m[p]||{p,n:0,kg:0,fr:0,tbb:0,ids:[]};o.n++;o.kg+=nz(x.d.cw);o.fr+=t;if(x.d.pay==='TBB'&&!x.inv){o.tbb+=t;o.ids.push(x.id)}});const r=Object.values(m).sort((a,b)=>b.fr-a.fr);
+ $('rCards').innerHTML=[['LRs this month',all.length],['Freight (Rs.)',inr(r.reduce((s,o)=>s+o.fr,0))],['To be billed (Rs.)',inr(r.reduce((s,o)=>s+o.tbb,0))],['PODs pending',hist().filter(x=>x.tr==='Delivered').length]].map(([l,v])=>`<div class="panel" style="min-width:150px"><small>${l}</small><br><b style="font-size:20px">${v}</b></div>`).join('');
+ $('rRows').innerHTML=r.map(o=>`<tr><td>${esc(o.p)}</td><td>${o.n}</td><td>${o.kg}</td><td>${inr(o.fr)}</td><td>${inr(o.tbb)}</td><td>${o.ids.length&&ME.role==='admin'?`<button data-p="${esc(o.p)}">Create invoice</button>`:''}</td></tr>`).join('')}
+$('rMon').onchange=repRows;
+$('rCsv').onclick=()=>{const L=[['LR No','Date','Shipper','Receiver','From','To','Pcs','Charged Wt','Vehicle','Payment','Status','Total','Invoice']];hist().filter(mon).forEach(x=>L.push([x.no,x.d.pdate,x.d.sname,x.d.rname,x.d.origin,x.d.dest,x.d.pcs,x.d.cw,x.d.veh,x.d.pay,x.tr||'Booked',calc(x.d).grand,x.inv||'']));
+ const t='\ufeff'+L.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\r\n'),a=document.createElement('a');a.href=URL.createObjectURL(new Blob([t],{type:'text/csv'}));a.download='LRs-'+CO().pre+'-'+$('rMon').value+'.csv';a.click()};
+$('rRows').onclick=async e=>{const b=e.target.closest('button[data-p]');if(!b)return;const p=b.dataset.p,ls=hist().filter(x=>mon(x)&&party(x)===p&&x.d.pay==='TBB'&&!x.inv);if(!ls.length)return;
+ const g=prompt('GST % to charge on this invoice (5, 12 or 18). Enter 0 if GST is paid by the consignor/consignee under RCM.','5');if(g===null)return;const tx=ls.reduce((s,x)=>s+calc(x.d).sub,0),gs=Math.round(tx*(+g||0))/100;
+ try{const j=await api('invoice',{co:cur,party:p,ids:ls.map(x=>x.id),tax:tx,gst:gs});ls.forEach(x=>x.inv=j.no);repRows();printInvoice(j.no,p,ls,tx,gs,+g||0)}catch(er){toast(er.message)}};
+function printInvoice(no,p,ls,tx,gs,g){const c=CO(),cu=cf(p)||{};$('print').innerHTML=`<div class="inv">${brand(c)}<h2>TAX INVOICE</h2><div class="kv"><span>Invoice no.</span><b>${esc(no)}</b><span>Date</span><b>${new Date().toLocaleDateString('en-IN')}</b><span>Bill to</span><b>${esc(p)} ${esc((cu.addr||'').replace(/\n/g,' '))} GST ${esc(cu.gst||'')}</b><span>From</span><b>${esc(c.name)}, ${esc(c.addr).replace(/\n/g,' ')} PAN ${esc(c.pan)} GST ${esc(c.gst)}</b></div>
+<table><thead><tr><th>LR no.</th><th>Date</th><th>From - To</th><th>Pkgs</th><th>Wt (kg)</th><th>Amount (Rs.)</th></tr></thead><tbody>${ls.map(x=>`<tr><td>${x.no}</td><td>${esc(x.d.pdate)}</td><td>${esc(x.d.origin)} - ${esc(x.d.dest)}</td><td>${esc(x.d.pcs)}</td><td>${esc(x.d.cw)}</td><td style="text-align:right">${calc(x.d).sub.toFixed(2)}</td></tr>`).join('')}</tbody></table>
+<p style="text-align:right">Taxable value: <b>${tx.toFixed(2)}</b><br>GST @ ${g}%: <b>${gs.toFixed(2)}</b><br>Total: <b>${(tx+gs).toFixed(2)}</b></p><p>Cheques in favour of ${esc(c.cheque)}.</p></div>`;window.print()}
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 fillSel();fillCusts();render();boot();
 </script></body></html>
